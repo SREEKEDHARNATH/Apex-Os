@@ -4,8 +4,10 @@
 #include "SDL_pixels.h"
 #include "SDL_render.h"
 #include "SDL_surface.h"
+#include "SDL_ttf.h"
 #include "core.hpp"
 #include <iostream>
+#include <pthread.h>
 
 aoImage::aoImage(const char* name, bool load, bool autoset){
     if (load){
@@ -69,5 +71,31 @@ void aoImage::draw(){
     }
 }
 SDL_Texture* aoImage::get(){
+    return ptr.get();
+}
+
+
+aoFont::aoFont(const char* name, int ptsize,bool load){
+    if (load){
+        set(name, ptsize);
+    }
+}
+aoFont::aoFont(TTF_Font* font){
+    set(font);
+}
+void aoFont::set(const char *name, int ptsize){
+    auto f = TTF_OpenFont(name, ptsize);
+    if (!f){
+        std::cerr << TTF_GetError() << "\n";
+        return;
+    }
+    ptr.reset(f, TTF_CloseFont);
+}
+void aoFont::set(TTF_Font *f){
+    if (f){
+        ptr.reset(f, TTF_CloseFont);
+    }
+}
+TTF_Font* aoFont::get(){
     return ptr.get();
 }

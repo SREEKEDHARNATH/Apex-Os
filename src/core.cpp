@@ -45,6 +45,7 @@ void aoRun(){
     bool running = true;
 
     aoImage im(255,0,0);
+    aoFont fo("assets/fonts/font.ttf");
     SDL_ShowWindow(aoGetWindow());
     while (running){
         while (SDL_PollEvent(&e)){
