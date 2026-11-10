@@ -8,41 +8,43 @@
 #include "SDL_video.h"
 #include "SDL_image.h"
 #include "SDL_ttf.h"
+#include "api.hpp"
 #include "listener.hpp"
 #include <iostream>
-#include <string>
+#include <utility>
 
-const char* init(){
+std::pair<bool, const char*> init(){
     int img_flags=IMG_INIT_PNG;
     if (SDL_Init(SDL_INIT_EVERYTHING)){
-        return SDL_GetError();
+        return {false,SDL_GetError()};
     }
     if ((IMG_Init(img_flags) & img_flags) != img_flags){
-        return IMG_GetError();
+        return {false,IMG_GetError()};
     }
     if (TTF_Init()){
-        return IMG_GetError();
+        return {false,TTF_GetError()};
     }
     aoGetWindow() = SDL_CreateWindow(aoGetTitle(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, aoGetW(), aoGetH(), SDL_WINDOW_HIDDEN);
-    if (aoGetWindow()){
-        return SDL_GetError();
+    if (!aoGetWindow()){
+        return {false,SDL_GetError()};
     }
     aoGetRenderer() = SDL_CreateRenderer(aoGetWindow(), -1, 0);
-    if (aoGetRenderer()){
-        return SDL_GetError();
+    if (!aoGetRenderer()){
+        return {false,SDL_GetError()};
     }
-    return "";
+    return {true,"All good"};
 }
 void aoRun(){
     auto i = init();
-    if (!std::string(i).empty()){
-        std::cerr << i << "\n";
+    if (!i.first){
+        std::cerr << i.second << "\n";
         return;
     }
 
     SDL_Event e;
     bool running = true;
 
+    aoImage im(255,0,0);
     SDL_ShowWindow(aoGetWindow());
     while (running){
         while (SDL_PollEvent(&e)){
@@ -72,6 +74,7 @@ void aoRun(){
             running = false;
         }
         SDL_RenderClear(aoGetRenderer());
+        im.draw();
         SDL_RenderPresent(aoGetRenderer());
         
         aoKUpdate();
