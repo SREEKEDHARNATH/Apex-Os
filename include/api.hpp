@@ -14,7 +14,7 @@ class aoImage{
         void set(Uint8 r,Uint8 g,Uint8 b,int w=32,int h=32,bool autoset=true);
         void set(SDL_Texture* t,bool autoset=true);
         void draw();
-        SDL_Texture* get();
+        std::shared_ptr<SDL_Texture> get();
 };
 
 class aoFont{

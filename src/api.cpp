@@ -7,6 +7,7 @@
 #include "SDL_ttf.h"
 #include "core.hpp"
 #include <iostream>
+#include <memory>
 #include <pthread.h>
 
 aoImage::aoImage(const char* name, bool load, bool autoset){
@@ -61,17 +62,17 @@ void aoImage::set(Uint8 r, Uint8 g, Uint8 b,int w,int h,bool autoset){
     set(t,autoset);
 }
 void aoImage::draw(){
-    if (get()){
+    if (ptr.get()){
         if (r.w<=0 || r.h<=0){
-            SDL_RenderCopy(aoGetRenderer(), get(), NULL,NULL);
+            SDL_RenderCopy(aoGetRenderer(), ptr.get(), NULL,NULL);
         }
         else {
-            SDL_RenderCopy(aoGetRenderer(), get(), NULL,&r);
+            SDL_RenderCopy(aoGetRenderer(), ptr.get(), NULL,&r);
         }
     }
 }
-SDL_Texture* aoImage::get(){
-    return ptr.get();
+std::shared_ptr<SDL_Texture> aoImage::get(){
+    return ptr;
 }
 
 

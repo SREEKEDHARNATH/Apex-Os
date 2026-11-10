@@ -9,6 +9,7 @@
 #include "SDL_image.h"
 #include "SDL_ttf.h"
 #include "api.hpp"
+#include "app.hpp"
 #include "listener.hpp"
 #include <iostream>
 #include <utility>
@@ -34,6 +35,9 @@ std::pair<bool, const char*> init(){
     }
     return {true,"All good"};
 }
+void hello(){
+    std::cout << "Hello\n";
+}
 void aoRun(){
     auto i = init();
     if (!i.first){
@@ -44,9 +48,11 @@ void aoRun(){
     SDL_Event e;
     bool running = true;
 
-    aoImage im(255,0,0);
     aoFont fo("assets/fonts/font.ttf");
-    aoText t(fo, "Hello");
+    aoIcons icons;
+    for (int i=1;i<=20;i++){
+        icons.inserticon(fo, "assets/images/notepad.png", std::to_string(i).c_str(), hello);
+    }
 
     SDL_ShowWindow(aoGetWindow());
     while (running){
@@ -77,8 +83,7 @@ void aoRun(){
             running = false;
         }
         SDL_RenderClear(aoGetRenderer());
-        im.draw();
-        t.draw();
+        icons.draw();
         SDL_RenderPresent(aoGetRenderer());
         
         aoKUpdate();
