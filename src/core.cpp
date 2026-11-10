@@ -11,6 +11,7 @@
 #include "api.hpp"
 #include "app.hpp"
 #include "listener.hpp"
+#include "notepad.hpp"
 #include <iostream>
 #include <utility>
 
@@ -35,9 +36,6 @@ std::pair<bool, const char*> init(){
     }
     return {true,"All good"};
 }
-void hello(){
-    std::cout << "Hello\n";
-}
 void aoRun(){
     auto i = init();
     if (!i.first){
@@ -50,9 +48,7 @@ void aoRun(){
 
     aoFont fo("assets/fonts/font.ttf");
     aoIcons icons;
-    for (int i=1;i<=20;i++){
-        icons.inserticon(fo, "assets/images/notepad.png", std::to_string(i).c_str(), hello);
-    }
+    icons.inserticon(fo, "assets/images/notepad.png", "notepad", nullptr,aoNotepad);
 
     SDL_ShowWindow(aoGetWindow());
     while (running){
@@ -82,6 +78,10 @@ void aoRun(){
         if (aoKIsPressed(SDLK_ESCAPE)){
             running = false;
         }
+        if (aoKIsPressed(SDLK_LCTRL)){
+            std::cout << aoNotepadGetinput();
+        }
+        icons.runall();
         SDL_RenderClear(aoGetRenderer());
         icons.draw();
         SDL_RenderPresent(aoGetRenderer());

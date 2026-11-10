@@ -13,13 +13,16 @@ struct aoIcon{
     std::shared_ptr<SDL_Texture> ptr;
     std::shared_ptr<SDL_Texture> text;
     void(*onclick)() = nullptr;
+    void(*onrun)() = nullptr;
 };
 
-struct aoIcons{
+class aoIcons{
     std::vector<aoIcon> icons;
-    void inserticon(aoFont& f, const char* imagepath, const char* txt, void(*onclick)());
-    void draw();
-    private:
-        int ypadding=10,xpadding=17,textpadding=3;
-        int curx=xpadding,cury=ypadding;
+    std::vector<bool> run;
+    int ypadding=10,xpadding=17,textpadding=3;
+    int curx=xpadding,cury=ypadding;
+    public:
+        void inserticon(aoFont& f, const char* imagepath, const char* txt, void(*onclick)(), void(*onrun)());
+        void draw();
+        void runall();
 };

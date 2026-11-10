@@ -5,7 +5,7 @@
 #include "core.hpp"
 #include "listener.hpp"
 
-void aoIcons::inserticon(aoFont& f, const char* imagepath, const char* txt, void(*onclick)()){
+void aoIcons::inserticon(aoFont& f, const char* imagepath, const char* txt, void(*onclick)(), void(*onrun)()){
     aoIcon ic;
     if ((curx+ic.size+xpadding) > aoGetW()){
         return;
@@ -19,6 +19,7 @@ void aoIcons::inserticon(aoFont& f, const char* imagepath, const char* txt, void
     ic.text=t.image.get();
     ic.tw=t.image.r.w;
     ic.th=t.image.r.h;
+    ic.onrun=onrun;
     icons.push_back(ic);
 
     cury+=ic.size+ypadding+ic.th;
@@ -26,9 +27,12 @@ void aoIcons::inserticon(aoFont& f, const char* imagepath, const char* txt, void
         cury=ypadding;
         curx+=xpadding+ic.size;
     }
+
+    run.push_back(false);
 }
 void aoIcons::draw(){
     SDL_Rect mouse = {aoMGetX(),aoMGetY(),1,1,};
+    int count=0;
     for (const auto& ic : icons){
         if (ic.ptr.get()){
             SDL_Rect r={ic.x, ic.y, ic.size,ic.size};
@@ -46,10 +50,21 @@ void aoIcons::draw(){
             }
             if (SDL_HasIntersection(&r, &mouse)){
                 if (aoMIsPressed(SDL_BUTTON_LEFT)){
+                    run[count]=true;
                     if (ic.onclick){
                         ic.onclick();
                     }
                 }
+            }
+        }
+        count++;
+    }
+}
+void aoIcons::runall(){
+    for (int i=0;i<icons.size();i++){
+        if (run[i]){
+            if (icons[i].onrun){
+                icons[i].onrun();
             }
         }
     }
