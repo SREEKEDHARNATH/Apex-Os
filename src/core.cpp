@@ -17,7 +17,7 @@
 
 std::pair<bool, const char*> init(){
     int img_flags=IMG_INIT_PNG;
-    if (SDL_Init(SDL_INIT_EVERYTHING)){
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER)){
         return {false,SDL_GetError()};
     }
     if ((IMG_Init(img_flags) & img_flags) != img_flags){
@@ -80,10 +80,11 @@ void aoRun(){
         }
         if (aoKIsPressed(SDLK_LCTRL)){
             std::cout << aoNotepadGetinput();
+            aoNotepadGetinput()="";
         }
-        icons.runall();
         SDL_RenderClear(aoGetRenderer());
         icons.draw();
+        icons.runall();
         SDL_RenderPresent(aoGetRenderer());
         
         aoKUpdate();

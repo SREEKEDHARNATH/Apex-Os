@@ -5,13 +5,16 @@
 #include "core.hpp"
 #include "listener.hpp"
 
-void aoIcons::inserticon(aoFont& f, const char* imagepath, const char* txt, void(*onclick)(), void(*onrun)()){
+void aoIcons::inserticon(aoFont& f, const char* imagepath, const char* txt, void(*onclick)(), bool(*onrun)(aoIcon&)){
     aoIcon ic;
     if ((curx+ic.size+xpadding) > aoGetW()){
         return;
     }
     aoImage im(imagepath);
     aoText t(f,txt);
+    aoImage bg(255,255,255);
+    aoImage uppertile((Uint8)20,20,20);
+    aoImage close((Uint8)255,0,0);
     ic.x=curx;
     ic.y=cury;
     ic.ptr=im.get();
@@ -20,6 +23,9 @@ void aoIcons::inserticon(aoFont& f, const char* imagepath, const char* txt, void
     ic.tw=t.image.r.w;
     ic.th=t.image.r.h;
     ic.onrun=onrun;
+    ic.window.bg=bg.get();
+    ic.window.uppertile=uppertile.get();
+    ic.window.close=close.get();
     icons.push_back(ic);
 
     cury+=ic.size+ypadding+ic.th;
@@ -64,7 +70,7 @@ void aoIcons::runall(){
     for (int i=0;i<icons.size();i++){
         if (run[i]){
             if (icons[i].onrun){
-                icons[i].onrun();
+                run[i] = icons[i].onrun(icons[i]);
             }
         }
     }
