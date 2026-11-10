@@ -26,3 +26,13 @@ class aoFont{
         void set(TTF_Font* f);
         TTF_Font* get();
 };
+
+class aoText{
+    std::string text;
+    public:
+        aoImage image;
+        aoText(aoFont& f, const char* txt, SDL_Color fg={255,255,255,255},bool load=true);
+        void set(aoFont& f, const char* txt, SDL_Color fg={255,255,255,255});
+        void draw();
+        std::string getText();
+};

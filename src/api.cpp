@@ -99,3 +99,31 @@ void aoFont::set(TTF_Font *f){
 TTF_Font* aoFont::get(){
     return ptr.get();
 }
+
+aoText::aoText(aoFont& f, const char* txt, SDL_Color fg,bool load) : image("",false) {
+    if (load){
+        set(f,txt,fg);
+    }
+}
+void aoText::set(aoFont& f, const char* txt,SDL_Color fg){
+    if (f.get()){
+        auto s = TTF_RenderUTF8_Blended(f.get(), txt, fg);
+        if (!s){
+            std::cerr << TTF_GetError() << "\n";
+            return;
+        }
+        auto t= SDL_CreateTextureFromSurface(aoGetRenderer(), s);
+        if (!t){
+            std::cerr << SDL_GetError() << "\n";
+            return;
+        }
+        image.set(t);
+        text=txt;
+    }
+}
+void aoText::draw(){
+    image.draw();
+}
+std::string aoText::getText(){
+    return text;
+}

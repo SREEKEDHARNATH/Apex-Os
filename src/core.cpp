@@ -46,6 +46,8 @@ void aoRun(){
 
     aoImage im(255,0,0);
     aoFont fo("assets/fonts/font.ttf");
+    aoText t(fo, "Hello");
+
     SDL_ShowWindow(aoGetWindow());
     while (running){
         while (SDL_PollEvent(&e)){
@@ -76,6 +78,7 @@ void aoRun(){
         }
         SDL_RenderClear(aoGetRenderer());
         im.draw();
+        t.draw();
         SDL_RenderPresent(aoGetRenderer());
         
         aoKUpdate();
