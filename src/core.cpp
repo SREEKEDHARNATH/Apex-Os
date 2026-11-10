@@ -2,15 +2,26 @@
 #include "SDL.h"
 #include "SDL_error.h"
 #include "SDL_events.h"
+#include "SDL_keycode.h"
 #include "SDL_render.h"
 #include "SDL_timer.h"
 #include "SDL_video.h"
+#include "SDL_image.h"
+#include "SDL_ttf.h"
+#include "listener.hpp"
 #include <iostream>
 #include <string>
 
 const char* init(){
+    int img_flags=IMG_INIT_PNG;
     if (SDL_Init(SDL_INIT_EVERYTHING)){
         return SDL_GetError();
+    }
+    if ((IMG_Init(img_flags) & img_flags) != img_flags){
+        return IMG_GetError();
+    }
+    if (TTF_Init()){
+        return IMG_GetError();
     }
     aoGetWindow() = SDL_CreateWindow(aoGetTitle(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, aoGetW(), aoGetH(), SDL_WINDOW_HIDDEN);
     if (aoGetWindow()){
@@ -39,12 +50,32 @@ void aoRun(){
                 case SDL_QUIT:
                     running=false;
                     break;
+                case SDL_KEYUP:
+                case SDL_KEYDOWN:
+                    aoKReg(e.key);
+                    break;
+                case SDL_MOUSEMOTION:
+                    aoMReg(e.motion);
+                    break;
+                case SDL_MOUSEWHEEL:
+                    aoMReg(e.wheel);
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                case SDL_MOUSEBUTTONUP:
+                    aoMReg(e.button);
+                    break;
+                
             }
         }
 
+        if (aoKIsPressed(SDLK_ESCAPE)){
+            running = false;
+        }
         SDL_RenderClear(aoGetRenderer());
         SDL_RenderPresent(aoGetRenderer());
         
+        aoKUpdate();
+        aoMUpdate();
         SDL_Delay(16);
     }
 }
@@ -55,6 +86,8 @@ void aoQuit(){
     if (aoGetWindow()){
         SDL_DestroyWindow(aoGetWindow());
     }
+    TTF_Quit();
+    IMG_Quit();
     SDL_Quit();
 }
 
