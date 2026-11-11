@@ -3,6 +3,8 @@
 #include "SDL_error.h"
 #include "SDL_events.h"
 #include "SDL_keycode.h"
+#include "SDL_mouse.h"
+#include "SDL_rect.h"
 #include "SDL_render.h"
 #include "SDL_timer.h"
 #include "SDL_video.h"
@@ -12,6 +14,7 @@
 #include "app.hpp"
 #include "listener.hpp"
 #include "notepad.hpp"
+#include <chrono>
 #include <iostream>
 #include <utility>
 
@@ -36,6 +39,12 @@ std::pair<bool, const char*> init(){
     }
     return {true,"All good"};
 }
+struct time{
+    int hours=0;
+    int minutes=0;
+    int seconds=0;
+    bool am;
+};
 void aoRun(){
     auto i = init();
     if (!i.first){
@@ -49,7 +58,33 @@ void aoRun(){
     aoFont fo("assets/fonts/font.ttf");
     aoIcons icons;
     icons.inserticon(fo, "assets/images/notepad.png", "notepad", nullptr,aoNotepad);
+    aoImage shutdown("assets/images/shutdown.png");
+    shutdown.r.x=aoGetW()-shutdown.r.w;
 
+    struct time t;
+    
+    auto cur = std::chrono::system_clock::now();
+    auto local = std::chrono::current_zone();
+    auto ti = local->to_local(cur);
+    auto s = std::chrono::time_point_cast<std::chrono::seconds>(ti).time_since_epoch().count()+6;
+    while (s){
+        s--;
+        t.seconds++;
+        if (t.hours==12){
+            t.hours=0;
+            t.am = !t.am;
+        }
+        else if (t.seconds==60){
+            t.seconds=0;
+            t.minutes++;
+        }
+        else if (t.minutes==60){
+            t.minutes=0;
+            t.hours++;
+        }
+    }
+
+    auto start=std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::steady_clock::now()).time_since_epoch().count();
     SDL_ShowWindow(aoGetWindow());
     while (running){
         while (SDL_PollEvent(&e)){
@@ -74,21 +109,48 @@ void aoRun(){
                 
             }
         }
-
+        SDL_Rect mouse = {aoMGetX(),aoMGetY(),1,1};
         if (aoKIsPressed(SDLK_ESCAPE)){
             running = false;
         }
-        if (aoKIsPressed(SDLK_LCTRL)){
-            std::cout << aoNotepadGetinput();
-            aoNotepadGetinput()="";
+        if (SDL_HasIntersection(&shutdown.r, &mouse)){
+            if (aoMIsPressed(SDL_BUTTON_LEFT)){
+                running=false;
+            }
+        }
+        if (aoKIsDown(SDLK_LCTRL) && aoKIsDown(SDLK_LALT) && aoKIsDown(SDLK_LSHIFT) && aoKIsPressed(SDLK_s)){
+            running=false;
         }
         SDL_RenderClear(aoGetRenderer());
+        shutdown.draw();
         icons.draw();
         icons.runall();
         SDL_RenderPresent(aoGetRenderer());
         
         aoKUpdate();
         aoMUpdate();
+
+        if ((std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::steady_clock().now()).time_since_epoch().count()-start)==1){
+            start=std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::steady_clock::now()).time_since_epoch().count();
+            std::cout << (std::to_string(t.hours).size() == 1 ? std::string("0" + std::to_string(t.hours)) : std::to_string(t.hours))
+             << "::" << (std::to_string(t.minutes).size() == 1 ? std::string("0" + std::to_string(t.minutes)) : std::to_string(t.minutes))
+             << "::" << (std::to_string(t.seconds).size() == 1 ? std::string("0" + std::to_string(t.seconds)) : std::to_string(t.seconds))
+             << " " << (t.am ? "AM" : "PM") << "\n";
+    
+            t.seconds++;
+        }
+        if (t.hours==12){
+            t.hours=0;
+            t.am = !t.am;
+        }
+        else if (t.seconds==60){
+            t.seconds=0;
+            t.minutes++;
+        }
+        else if (t.minutes==60){
+            t.minutes=0;
+            t.hours++;
+        }
         SDL_Delay(16);
     }
 }

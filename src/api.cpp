@@ -123,7 +123,9 @@ void aoText::set(aoFont& f, const char* txt,SDL_Color fg){
     }
 }
 void aoText::draw(){
-    image.draw();
+    if (!(image.r.w < 1 || image.r.h < 1)){
+        image.draw();
+    }
 }
 std::string aoText::getText(){
     return text;

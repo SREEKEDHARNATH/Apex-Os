@@ -50,7 +50,7 @@ bool aoNotepad(aoIcon& icon){
     SDL_Rect mouse = {aoMGetX(),aoMGetY(),1,1};
 
     SDL_Rect win={window.x, window.y, window.w, window.h};
-    SDL_Rect uppertile={window.x, window.y, window.w, 30};
+    SDL_Rect uppertile={window.x, window.y, window.w, 35};
     SDL_Rect close={(win.x+win.w)-25, window.y+5, 20, 20};
     SDL_Rect text={window.x, window.y, 0,0};
     
@@ -72,7 +72,7 @@ bool aoNotepad(aoIcon& icon){
     
     text.w/=2;
     text.h/=2;
-    text.x+=((win.w-text.w)/2.0);
+    text.x+=((win.w-text.w)/2.0)-90;
     SDL_QueryTexture(icon.text.get(), NULL,NULL,&text.w,&text.h);
     if (SDL_HasIntersection(&mouse, &close) && aoMIsPressed(SDL_BUTTON_LEFT)){
         holding=false;

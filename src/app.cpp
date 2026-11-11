@@ -1,9 +1,11 @@
 #include "app.hpp"
+#include "SDL_mouse.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
 #include "api.hpp"
 #include "core.hpp"
 #include "listener.hpp"
+#include <vector>
 
 void aoIcons::inserticon(aoFont& f, const char* imagepath, const char* txt, void(*onclick)(), bool(*onrun)(aoIcon&)){
     aoIcon ic;
@@ -67,9 +69,26 @@ void aoIcons::draw(){
         count++;
     }
 }
+std::vector<bool> holds;
 void aoIcons::runall(){
+    while (holds.size() < icons.size()){
+        holds.push_back(false);
+    }
     for (int i=0;i<icons.size();i++){
         if (run[i]){
+            SDL_Rect iconrect = {icons[i].x, icons[i].y, icons[i].size, icons[i].size};
+            SDL_Rect mouse = {aoMGetX(),aoMGetY(),1,1};
+            if (SDL_HasIntersection(&iconrect, &mouse) || holds[i]){
+                if (aoMIsDown(SDL_BUTTON_LEFT)){
+                    holds[i] = true;
+                    icons[i].x = (((int)mouse.x)/(int)icons[i].size)*icons[i].size;
+                    icons[i].y = (((int)mouse.y)/(int)icons[i].size)*icons[i].size;
+                    continue;
+                }
+                else {
+                    holds[i]=false;
+                }
+            }
             if (icons[i].onrun){
                 run[i] = icons[i].onrun(icons[i]);
             }
