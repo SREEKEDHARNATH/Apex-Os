@@ -26,6 +26,7 @@ void aoIcons::inserticon(aoFont& f, const char* imagepath, const char* txt, void
     ic.window.bg=bg.get();
     ic.window.uppertile=uppertile.get();
     ic.window.close=close.get();
+    ic.font=&f;
     icons.push_back(ic);
 
     cury+=ic.size+ypadding+ic.th;

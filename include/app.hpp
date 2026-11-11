@@ -19,6 +19,7 @@ struct aoIcon{
     int size=64;
     std::shared_ptr<SDL_Texture> ptr;
     std::shared_ptr<SDL_Texture> text;
+    aoFont* font;
     void(*onclick)() = nullptr;
     bool(*onrun)(aoIcon&) = nullptr;
     aoWindow window;
