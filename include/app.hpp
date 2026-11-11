@@ -26,11 +26,11 @@ struct aoIcon{
 };
 
 class aoIcons{
-    std::vector<aoIcon> icons;
     std::vector<bool> run;
     int ypadding=10,xpadding=17,textpadding=3;
     int curx=xpadding,cury=ypadding;
     public:
+        std::vector<aoIcon> icons;
         void inserticon(aoFont& f, const char* imagepath, const char* txt, void(*onclick)(), bool(*onrun)(aoIcon&));
         void draw();
         void runall();
