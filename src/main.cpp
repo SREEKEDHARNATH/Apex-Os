@@ -1,6 +1,6 @@
 #include "core.hpp"
 
-int main(){
-    aoRun();
+int main(int argc, char** argv){
+    aoRun(argc, argv);
     aoQuit();
 }

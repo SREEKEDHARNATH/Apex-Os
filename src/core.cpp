@@ -6,6 +6,7 @@
 #include "SDL_mouse.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
+#include "SDL_surface.h"
 #include "SDL_timer.h"
 #include "SDL_video.h"
 #include "SDL_image.h"
@@ -19,6 +20,7 @@
 #include <iostream>
 #include <utility>
 
+SDL_Surface* surf;
 std::pair<bool, const char*> init(){
     int img_flags=IMG_INIT_PNG;
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER)){
@@ -38,6 +40,11 @@ std::pair<bool, const char*> init(){
     if (!aoGetRenderer()){
         return {false,SDL_GetError()};
     }
+    surf = IMG_Load("assets/images/apex-os-logo.png");
+    if (!surf){
+        return {false,SDL_GetError()};
+    }
+    SDL_SetWindowIcon(aoGetWindow(), surf);
     return {true,"All good"};
 }
 struct time{
@@ -46,13 +53,18 @@ struct time{
     int seconds=0;
     bool am=true;
 };
-void aoRun(){
+void aoRun(int argc, char** argv){
     auto i = init();
     if (!i.first){
         std::cerr << i.second << "\n";
         return;
     }
-
+    bool us=false;
+    for (int i=1;i<argc;i++){
+        if (std::string(argv[i]) == "-i-am-us"){
+            us=true;
+        }
+    }
     SDL_Event e;
     bool running = true;
 
@@ -84,39 +96,55 @@ void aoRun(){
             t.am = !t.am;
         }
     }
-
+    auto curdate = std::chrono::year_month_day(std::chrono::floor<std::chrono::days>(ti));
+    auto d = std::to_string(static_cast<unsigned int>(curdate.day()));
+    auto m = std::to_string(static_cast<unsigned int>(curdate.month()));
+    auto y = std::to_string((int)curdate.year());
+    std::string date((us ? m : d) + "/" + (us ? d : m) + "/" + y);
     aoText timetext(fo, "00::00::00 AM");
+    aoText datetext(fo, date.c_str());
     std::ifstream cfg("config.txt");
     if (cfg.is_open()){
         std::string line;
-        for (int i=0;i<=icons.icons.size();i++){
+        for (int i=0;i<=icons.icons.size()+1;i++){
             for (int j=0;j<2;j++){
                 std::getline(cfg, line);
                 if (line.empty()){
                     continue;
                 }
-                if (i){
+                if (i > 1){
                     if (j){
-                        icons.icons[i-1].y=std::stoi(line);
+                        icons.icons[i-2].y=std::stoi(line);
                     }
                     else {
-                        icons.icons[i-1].x=std::stoi(line);
+                        icons.icons[i-2].x=std::stoi(line);
                     }
                 }
                 else {
-                    if (j){
-                        timetext.image.r.y=std::stoi(line);
+                    if (!i){
+                        if (j){
+                            timetext.image.r.y=std::stoi(line);
+                        }
+                        else {
+                            timetext.image.r.x=std::stoi(line);
+                        }
                     }
                     else {
-                        timetext.image.r.x=std::stoi(line);
+                        if (j){
+                            datetext.image.r.y=std::stoi(line);
+                        }
+                        else {
+                            datetext.image.r.x=std::stoi(line);
+                        }
                     }
+                    
                 }
             }   
         }
         cfg.close();
     }
     auto start=std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::steady_clock::now()).time_since_epoch().count();
-    bool hold=false;
+    bool hold=false,holdD=false;
     SDL_ShowWindow(aoGetWindow());
     while (running){
         while (SDL_PollEvent(&e)){
@@ -145,13 +173,14 @@ void aoRun(){
         if (aoKIsPressed(SDLK_ESCAPE)){
             running = false;
         }
-
         if (SDL_HasIntersection(&shutdown.r, &mouse)){
             if (aoMIsPressed(SDL_BUTTON_LEFT)){
                 running=false;
+                for (auto a : icons.run){
+                    running = a;
+                }
             }
         }
-
         if (aoKIsDown(SDLK_LCTRL) && aoKIsDown(SDLK_LALT) && aoKIsDown(SDLK_LSHIFT) && aoKIsPressed(SDLK_s)){
             running=false;
         }
@@ -193,6 +222,48 @@ void aoRun(){
             timetext.image.r.y-=64;
         }
 
+        if (aoKIsPressed(SDLK_d)){
+            datetext.image.r.x+=64;
+        }
+        if (aoKIsPressed(SDLK_a)){
+            datetext.image.r.x-=64;
+        }
+        if (aoKIsPressed(SDLK_w)){
+            datetext.image.r.y-=64;
+        }
+        if (aoKIsPressed(SDLK_s)){
+            datetext.image.r.y+=64;
+        }
+        
+        if (SDL_HasIntersection(&datetext.image.r, &mouse) || holdD){
+            if (hold){
+                holdD=false;
+            }
+            else {
+                if (aoMIsDown(SDL_BUTTON_LEFT)){
+                    holdD=true;
+                    datetext.image.r.x = ((mouse.x)/64)*64;
+                    datetext.image.r.y = ((mouse.y)/64)*64;
+                }
+                else {
+                    holdD=false;
+                }
+            }
+        }
+
+        while ((datetext.image.r.x+timetext.image.r.w) > aoGetW()){
+            datetext.image.r.x-=64;
+        }
+        while (datetext.image.r.x < 0){
+            datetext.image.r.x+=64;
+        }
+        while (datetext.image.r.y < 0){
+            datetext.image.r.y+=64;
+        }
+        while ((datetext.image.r.y+datetext.image.r.h) > aoGetH()){
+            datetext.image.r.y-=64;
+        }
+
         if ((std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::steady_clock().now()).time_since_epoch().count()-start)==1){
             start=std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::steady_clock::now()).time_since_epoch().count();
             auto st = std::string((std::to_string(t.hours).size() == 1 ? std::string("0" + std::to_string(t.hours)) : std::to_string(t.hours))
@@ -218,6 +289,7 @@ void aoRun(){
         SDL_RenderClear(aoGetRenderer());
         shutdown.draw();
         timetext.draw();
+        datetext.draw();
         icons.draw();
         icons.runall();
         SDL_RenderPresent(aoGetRenderer());
@@ -230,6 +302,7 @@ void aoRun(){
     std::ofstream config("config.txt", std::ios::trunc);
     if (config.is_open()){
         config << timetext.image.r.x << "\n" << timetext.image.r.y << "\n";
+        config << datetext.image.r.x << "\n" << datetext.image.r.y << "\n";
         for (auto& a : icons.icons){
             config << a.x << "\n" << a.y << "\n";
         }
@@ -237,6 +310,9 @@ void aoRun(){
     }
 }
 void aoQuit(){
+    if (surf){
+        SDL_FreeSurface(surf);
+    }
     if (aoGetRenderer()){
         SDL_DestroyRenderer(aoGetRenderer());
     }

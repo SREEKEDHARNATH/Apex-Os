@@ -2,7 +2,7 @@
 #include "SDL_render.h"
 #include "SDL_video.h"
 
-void aoRun();
+void aoRun(int argc, char** argv);
 void aoQuit();
 
 int aoGetW();
